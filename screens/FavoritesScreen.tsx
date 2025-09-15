@@ -6,6 +6,8 @@ import { useNavigation, useTheme } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { RootStackParamList} from "../App";
 import {Note} from "../App"
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useIsFocused } from "@react-navigation/native";
 
 type FavNavProp = StackNavigationProp<RootStackParamList, "FavoritesMain">;
 
@@ -14,9 +16,25 @@ export default function FavoritesScreen() {
   const { colors } = useTheme();
 
   // Part B: load favorite notes from storage
-  const [favorites] = useState<Note[]>([
+  // const [favorites] = useState<Note[]>([
     // { id: "2", title: "Fav 1", content: "Fav Content...", isFavorite: true },
-  ]);
+  // ]);
+
+  const [favorites, setFavorites] = useState<Note[]>([]);
+  const isFocused = useIsFocused();
+
+React.useEffect(() => {
+  const loadFavorites = async () => {
+    const storedNotes = await AsyncStorage.getItem('notes');
+    if (storedNotes) {
+      const notes = JSON.parse(storedNotes);
+      setFavorites(notes.filter((n: Note) => n.isFavorite));
+    } else {
+      setFavorites([]);
+    }
+  };
+  loadFavorites();
+}, [isFocused]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

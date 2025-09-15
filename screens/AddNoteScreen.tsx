@@ -4,17 +4,34 @@ import HeaderBar from "../components/HeaderBar";
 import { useTheme } from "@react-navigation/native";
 // @ts-ignore
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from "react-native"; // Add this import
 
 export default function AddNoteScreen({ navigation }: any) {
   const { colors } = useTheme();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
 
-  const handleSave = () => {
-    // Part B: save note to persistent storage
-    navigation.goBack();
+  const handleSave = async () => {
+  const newNote = {
+    id: Date.now().toString(),
+    title,
+    content,
+    isFavorite: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
-
+  try {
+    const existingNotes = await AsyncStorage.getItem('notes');
+    const notes = existingNotes ? JSON.parse(existingNotes) : [];
+    notes.push(newNote);
+    await AsyncStorage.setItem('notes', JSON.stringify(notes));
+    navigation.goBack();
+  } catch (e) {
+    console.log("Error saving note:", e);
+    Alert.alert("Error", "Failed to save note. Please try again."); // Show user-friendly error
+  }
+};
   const isFormValid = title.trim().length > 0 && content.trim().length > 0;
 
   return (

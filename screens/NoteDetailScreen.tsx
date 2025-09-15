@@ -1,38 +1,77 @@
 import React, { useState } from "react";
-import {View, TextInput, StyleSheet, Alert, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView,Platform } from "react-native";
+import {View, TextInput, StyleSheet, Text, TouchableOpacity, ScrollView, KeyboardAvoidingView,Platform } from "react-native";
 import HeaderBar from "../components/HeaderBar";
 import { useTheme } from "@react-navigation/native";
 // @ts-ignore
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Note } from "../App";
+import { Alert } from "react-native"; // Add this import
+
+
 
 export default function NoteDetailScreen({ route, navigation }: any) {
   const { colors } = useTheme();
   const { id } = route.params;
 
-  const [title, setTitle] = useState("Sample Note Title");
-  const [content, setContent] = useState("This is the note content...");
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const handleSave = () => {
-    // Part B: update note in storage
+ const handleSave = async () => {
+  try {
+    const storedNotes = await AsyncStorage.getItem('notes');
+    if (storedNotes) {
+      const notes = JSON.parse(storedNotes);
+      const idx = notes.findIndex((n: Note) => n.id === id);
+      if (idx !== -1) {
+        notes[idx] = {
+          ...notes[idx],
+          title,
+          content,
+          isFavorite,
+          updatedAt: new Date(),
+        };
+        await AsyncStorage.setItem('notes', JSON.stringify(notes));
+      }
+    }
     navigation.goBack();
-  };
+  } catch (e) {
+     console.log("Error saving note:", e);
+    Alert.alert("Error", "Failed to save changes. Please try again.");
+  }
+};
 
-  const handleDelete = () => {
-    // Part B: delete note from storage
-    Alert.alert(
-      "Delete Note", 
-      "Are you sure you want to delete this note? This action cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { 
-          text: "Delete", 
-          style: "destructive", 
-          onPress: () => navigation.goBack() 
-        },
-      ]
-    );
-  };
+React.useEffect(() => {
+    const loadNote = async () => {
+      const storedNotes = await AsyncStorage.getItem('notes');
+      if (storedNotes) {
+        const notes: Note[] = JSON.parse(storedNotes);
+        const note = notes.find((n) => n.id === id);
+        if (note) {
+          setTitle(note.title);
+          setContent(note.content);
+          setIsFavorite(note.isFavorite ?? false);
+        }
+      }
+    };
+    loadNote();
+  }, [id]);
+
+const handleDelete = async () => {
+  try {
+    const storedNotes = await AsyncStorage.getItem('notes');
+    if (storedNotes) {
+      const notes = JSON.parse(storedNotes);
+      const filtered = notes.filter((n: Note) => n.id !== id);
+      await AsyncStorage.setItem('notes', JSON.stringify(filtered));
+    }
+    navigation.goBack();
+  } catch (e) {
+      console.log("Error deleting note:", e);
+    Alert.alert("Error", "Failed to delete note. Please try again.");
+  }
+};
 
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite);

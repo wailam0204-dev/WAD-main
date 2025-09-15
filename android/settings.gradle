@@ -1,4 +1,7 @@
 // Add at the top of settings.gradle
+pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+plugins { id("com.facebook.react.settings") }
+
 def reactNativeGradlePlugin = file("../node_modules/@react-native/gradle-plugin")
 if (reactNativeGradlePlugin.exists()) {
     includeBuild(reactNativeGradlePlugin)
@@ -6,8 +9,7 @@ if (reactNativeGradlePlugin.exists()) {
     println("Warning: @react-native/gradle-plugin not found at ${reactNativeGradlePlugin.absolutePath}")
 }
 
-pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
-plugins { id("com.facebook.react.settings") }
+
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'WAD'
 include ':app'

@@ -3,7 +3,7 @@ import { TouchableOpacity, Text, StyleSheet, View, Platform } from "react-native
 // @ts-ignore
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { useTheme } from "@react-navigation/native";
-import { Note } from '../type/Note'; // Adjust the import path as needed
+import { Note } from '../App'; // Adjust the import path as needed
 
 type NoteCardProps = {
   note: Note;
